@@ -9,11 +9,11 @@ import java.util.Scanner;
 public class WriteToServer extends Thread {
 
     private SocketChannel sc;
-    private int clientNum = 0;
+    private String clientID;
 
-    WriteToServer(SocketChannel sc, int clientNum) {
+    WriteToServer(SocketChannel sc, String clientID) {
         this.sc = sc;
-        this.clientNum = clientNum;
+        this.clientID = clientID;
     }
 
     public void run() {
@@ -23,16 +23,17 @@ public class WriteToServer extends Thread {
 
     }
 
-    private void writeToServer() {
+    public void writeToServer() {
 
         try {
             
+            Thread.sleep(500);
             ByteBuffer buffer = ByteBuffer.allocate(1024);
             
-            System.out.print("client_" + this.clientNum + " : ");
-            Scanner scanner = new Scanner(System.in);;
-            System.out.println("");
+            System.out.println("client-[" + this.clientID + "] : ");
+            Scanner scanner = new Scanner(System.in);
             String msg = scanner.next();
+            System.out.println("");
             
             buffer.clear();
             
@@ -43,7 +44,7 @@ public class WriteToServer extends Thread {
             buffer.flip();
             sc.write(buffer);
             
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
         

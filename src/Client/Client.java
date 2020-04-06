@@ -10,6 +10,7 @@ import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.util.Iterator;
+import java.util.Scanner;
 import java.util.Set;
 
 /**
@@ -27,22 +28,26 @@ public class Client extends Thread {
     private Selector selector;
     private Charset charset;
     private CharsetDecoder decoder = null;
-    private int clientNum = 0;
+    private String clientID;
     
-    public Client(int clientNum) {
-        this.clientNum = clientNum;
+    public Client(String clientID) {
+        this.clientID = clientID;
     }
 
 
     public void run() {
 
-        startClient();
+        if(connectToServer() == false) {
+            return;
+        }
+        
+        clientAction();
     }
 
-    private void startClient() {
-        System.out.println("before Client is connecting...");
-
+    private boolean connectToServer() {
         try {
+            System.out.println("client ["+this.clientID +"] is connecting...");
+            
             selector = Selector.open();
             sc = SocketChannel.open(connectAddress);
             sc.configureBlocking(false);
@@ -50,11 +55,24 @@ public class Client extends Thread {
 
             charset = Charset.forName("UTF-8");
             decoder = charset.newDecoder();
+            
+            
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
 
-            new WriteToServer(sc, clientNum).start();
+    }
+
+
+    private void clientAction() {
+        
+
+        try {
+            
+            new WriteToServer(sc, clientID).start();
 
             // selector를 이용해 read
-            // while(selector.select() > 0) {
             for (;;) {
 
                 int keyCount = selector.select();

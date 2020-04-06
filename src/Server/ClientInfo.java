@@ -7,40 +7,49 @@ public class ClientInfo {
     
     private static final int BUF_SIZE = 256;
     
-    private int clienID;
-    private String clientName;
-    SocketChannel sc;
+    private String clientID;
+    private String clientIP;
+    private SocketChannel sc;
     
     ByteBuffer readBuffer = ByteBuffer.allocate(BUF_SIZE);
     ByteBuffer writeBuffer = ByteBuffer.allocate(BUF_SIZE);
     
     
-    ClientInfo(int clienID, String clientName, SocketChannel sc) {
-        this.setClienID(clienID);
-        this.setClientName(clientName);
+    ClientInfo(String clientID, String clientIP, SocketChannel sc) {
+        this.setClientID(clientID);
+        this.setClientIP(clientIP);
+        this.setSc(sc);
+    }
+
+
+    public String getClientID() {
+        return clientID;
+    }
+
+
+    public void setClientID(String clientID) {
+        this.clientID = clientID;
+    }
+
+
+    public String getClientIP() {
+        return clientIP;
+    }
+
+
+    public void setClientIP(String clientIP) {
+        this.clientIP = clientIP;
+    }
+
+
+    public SocketChannel getSc() {
+        return sc;
+    }
+
+
+    public void setSc(SocketChannel sc) {
         this.sc = sc;
     }
-
-
-    public String getClientName() {
-        return clientName;
-    }
-
-
-    public void setClientName(String clientName) {
-        this.clientName = clientName;
-    }
-
-
-    public int getClienID() {
-        return clienID;
-    }
-
-
-    public void setClienID(int clienID) {
-        this.clienID = clienID;
-    }
-
 
 
 }

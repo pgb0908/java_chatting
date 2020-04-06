@@ -7,11 +7,11 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.util.Hashtable;
+import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
-import java.util.Vector;
+
+import com.sun.xml.internal.bind.v2.model.core.ClassInfo;
 
 public class Server extends Thread{
     
@@ -21,9 +21,8 @@ public class Server extends Thread{
     Selector selector;
     ServerSocketChannel ssc;
     private int cliNum = 0;
-    private int cliID;
 
-    Hashtable clientList = new Hashtable();
+    ArrayList<ClientInfo> clientList = new ArrayList<>();
     
     public void run() {
         startServer();
@@ -39,7 +38,7 @@ public class Server extends Thread{
             ssc.configureBlocking(false);
             ssc.bind(new InetSocketAddress(SERVER_PORT));
             ssc.register(selector, SelectionKey.OP_ACCEPT);
-            ByteBuffer buffer = ByteBuffer.allocate(BUF_SIZE);
+            
             
             for(;;) {
                 
@@ -60,7 +59,8 @@ public class Server extends Thread{
                     }
                     
                     if(selectionKey.isReadable()) {
-                        answerWithEcho(buffer, selectionKey);
+                        answerWithEcho(selectionKey);
+                        //broadcast(selectionKey);
                     }
                     
                     iter.remove();
@@ -73,7 +73,24 @@ public class Server extends Thread{
         }
     }
 
-    private void answerWithEcho(ByteBuffer buffer, SelectionKey selectionKey) throws IOException {
+    private void broadcast(SelectionKey selectionKey) throws IOException {
+        ByteBuffer buffer = ByteBuffer.allocate(BUF_SIZE);
+        SocketChannel client = (SocketChannel) selectionKey.channel();
+        client.read(buffer);
+        
+        if(new String(buffer.array()).trim().contentEquals(EXIT)) {
+            client.close();
+            System.out.println("Client disconnect!!");
+        }
+        
+        buffer.flip();
+        client.write(buffer);
+        buffer.clear();
+        
+    }
+
+    private void answerWithEcho(SelectionKey selectionKey) throws IOException {
+        ByteBuffer buffer = ByteBuffer.allocate(BUF_SIZE);
         SocketChannel client = (SocketChannel) selectionKey.channel();
         client.read(buffer);
         
@@ -91,30 +108,33 @@ public class Server extends Thread{
     private void accept(Selector selector, ServerSocketChannel ssc) {
             
         if(newClientCheck() == false) {
+            /**to do
+             * 고객에게 ~ 조건으로 서버 진입 불가하다고 알리기
+             * 
+             */
             return;
         }
         
-        if(acceptNewClient(selector, ssc) == false) {
+        if(acceptNewClient() == false) {
             stopServer();
             return;
         }
 
     
-        System.out.println("[Server] : client_" + cliID + " is connected");
+        System.out.println("[Server] : client is connected");
         showClientList();
     }
 
-    private boolean acceptNewClient(Selector selector, ServerSocketChannel ssc) {
+    private boolean acceptNewClient() {
         
         try {
-            SocketChannel sc = ssc.accept();
-            sc.configureBlocking(false);
-            sc.register(selector, SelectionKey.OP_READ);
+            SocketChannel clientFD = ssc.accept();
+            clientFD.configureBlocking(false);
+            clientFD.register(selector, SelectionKey.OP_READ);
             
-            cliID = cliNum;
-            ClientInfo clientInfo = new ClientInfo(cliID, "client", sc);
+            ClientInfo clientInfo = new ClientInfo("", clientFD.getRemoteAddress().toString(), clientFD);
+            clientList.add(clientInfo);
             cliNum++;
-            clientList.put(cliID, clientInfo);
             
             return true;
             
@@ -124,7 +144,9 @@ public class Server extends Thread{
     }
 
     private boolean newClientCheck() {
-        // TODO Auto-generated method stub
+        
+        // 최대 접속자 수 비교
+        
         return true;
     }
 
@@ -146,16 +168,16 @@ public class Server extends Thread{
     
     void showClientList() {
         
-        Iterator iter = clientList.keySet().iterator();
+        Iterator iter = clientList.iterator();
         
         System.out.println("");
         System.out.println("--------- client list Start ------------");
+        System.out.println("tota client : " + cliNum);
+        
         while(iter.hasNext()) {
-            int key = (int) iter.next();
-            System.out.print(key + " ");
-            System.out.print(((ClientInfo) clientList.get(key)).getClientName());
+            ClientInfo ci = (ClientInfo) iter.next();
+            System.out.print(ci.getClientIP() +" "+ ci.getClientID());
             System.out.println("");
-            //iter.next();
         }
         iter.remove();
         System.out.println("--------- client list End ------------");

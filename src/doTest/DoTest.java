@@ -13,7 +13,7 @@ public class DoTest {
         
         
         //System.out.println("Client is initing...");
-        Client client1 = new Client(1);
+        Client client1 = new Client("pgb0908");
         client1.start();
         
         //Client client2 = new Client(2);
