@@ -16,7 +16,7 @@ public class DoTest {
         Client client1 = new Client("pgb0908");
         client1.start();
         
-        //Client client2 = new Client(2);
+        //Client client2 = new Client("hello222");
         //client2.start();
 
     }
