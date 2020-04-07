@@ -24,7 +24,7 @@ public class Server extends Thread {
 	ServerSocketChannel ssc;
 	private int cliNum = 0;
 
-	private static ArrayList<ClientInfo> clientList = new ArrayList<>();
+	private static ArrayList<ClientInfo> clientList = new ArrayList<ClientInfo>();
 
 	public void run() {
 		startServer();
@@ -54,7 +54,6 @@ public class Server extends Thread {
 
 				while (iter.hasNext()) {
 					SelectionKey selectionKey = iter.next();
-					System.out.println("begin part : " + clientList.toString());
 
 					if (selectionKey.isAcceptable()) {
 						accept(selector, ssc);
@@ -62,13 +61,10 @@ public class Server extends Thread {
 					}
 
 					if (selectionKey.isReadable()) {
-						System.out.println("isReadable() : " + clientList.toString());
-						//showClientList();
 						readFromClient(selectionKey);
 					}
 
 					iter.remove();
-					System.out.println("end part : " + clientList.toString());
 					
 					//showClientList();
 				}
@@ -143,7 +139,6 @@ public class Server extends Thread {
 		//System.out.println("accept : " + clientList.toString());
 
 		System.out.println("[Server] : client is connected");
-		// showClientList();
 	}
 
 	public boolean acceptNewClient() {
@@ -190,18 +185,25 @@ public class Server extends Thread {
 
 	public void showClientList() {
 
-		Iterator iter = clientList.iterator();
+		
 
 		System.out.println("");
 		System.out.println("--------- client list Start ------------");
 		System.out.println("tota client : " + cliNum);
 
-		while (iter.hasNext()) {
-			ClientInfo ci = (ClientInfo) iter.next();
-			System.out.print(ci.getClientIP() + " " + ci.getClientID());
-			System.out.println("");
+//		Iterator iter = clientList.iterator();
+//		while (iter.hasNext()) {
+//			ClientInfo ci = (ClientInfo) iter.next();
+//			System.out.print(ci.getClientIP() + " " + ci.getClientID());
+//			System.out.println("");
+//		}
+//		//iter.remove(); remove 쓰면 안된다잉
+		
+		
+		for (ClientInfo ci : clientList) {
+		    System.out.print(ci.getClientIP() + " " + ci.getClientID());
+		    System.out.println();
 		}
-		iter.remove();
 		System.out.println("--------- client list End ------------");
 		System.out.println("");
 	}
