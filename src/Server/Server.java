@@ -1,5 +1,8 @@
 package Server;
 
+import Protocol.InboundPro;
+import Protocol.MyMessage;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -18,7 +21,7 @@ import com.sun.xml.internal.bind.v2.model.core.ClassInfo;
 public class Server extends Thread {
 
 	private static final int SERVER_PORT = 12000;
-	private static final int BUF_SIZE = 256;
+	private static final int BUF_SIZE = 1024;
 	private static final String EXIT = "exit";
 	Selector selector;
 	ServerSocketChannel ssc;
@@ -53,10 +56,11 @@ public class Server extends Thread {
 				Iterator<SelectionKey> iter = selectedKeys.iterator();
 
 				while (iter.hasNext()) {
+				    
 					SelectionKey selectionKey = iter.next();
 
 					if (selectionKey.isAcceptable()) {
-						accept(selector, ssc);
+						acceptProcess(selector, ssc);
 						showClientList();
 					}
 
@@ -65,8 +69,6 @@ public class Server extends Thread {
 					}
 
 					iter.remove();
-					
-					//showClientList();
 				}
 			}
 
@@ -85,43 +87,67 @@ public class Server extends Thread {
 		
 		int n = client.read(buffer);
 		
-
-//		if (new String(buffer.array()).trim().contentEquals(EXIT)) {
-//			client.close();
-//			System.out.println("Client disconnect!!");
-//		}
-		
 		if(n < 0) {
-			/**to do
+			/**
+			 * to do
 			 * 에러 처리
 			 */
 			return;
 		}else {
 			buffer.flip();
-			broadcast(buffer);
-		}
-		
-		//System.out.println("readFromClient!!");
-//		buffer.flip();
-//		client.write(buffer);
-//		buffer.clear();
-		// System.out.println("Server echo writting... ");
-	}
-
-	private void broadcast(ByteBuffer buffer) throws IOException {
-		
-		ByteBuffer msgBuf=buffer;
-		for(SelectionKey key : selector.keys()) {
-			if(key.isValid() && key.channel() instanceof SocketChannel) {
-				SocketChannel sch=(SocketChannel) key.channel();
-				sch.write(msgBuf);
-				msgBuf.rewind();
+			InboundPro inpro = new InboundPro(buffer);
+			MyMessage mmsg = inpro.prcess();
+			
+			
+			OutboundPro 
+			
+			//switch에 따라 석택
+			switch(mmsg.getType()) {
+			
+			case REG:
+			    //to do
+			    System.out.println();
+			    break;
+			    
+            case UNREGIST:
+                //to do
+                System.out.println();
+                break;
+                
+            case BROADCAST:
+                
+                ByteBuffer msgBuf=buffer;
+                
+                for(SelectionKey key : selector.keys()) {
+                    if(key.isValid() && key.channel() instanceof SocketChannel) {
+                        SocketChannel sch=(SocketChannel) key.channel();
+                        sch.write(msgBuf);
+                        msgBuf.rewind();
+                    }
+                }
+                break;
 			}
+			
+			
+			
 		}
 		
 	}
 
-	public void accept(Selector selector, ServerSocketChannel ssc) {
+//	private void broadcast(ByteBuffer buffer) throws IOException {
+//		
+//		ByteBuffer msgBuf=buffer;
+//		for(SelectionKey key : selector.keys()) {
+//			if(key.isValid() && key.channel() instanceof SocketChannel) {
+//				SocketChannel sch=(SocketChannel) key.channel();
+//				sch.write(msgBuf);
+//				msgBuf.rewind();
+//			}
+//		}
+//		
+//	}
+
+	public void acceptProcess(Selector selector, ServerSocketChannel ssc) {
 
 		if (newClientCheck() == false) {
 			/**
