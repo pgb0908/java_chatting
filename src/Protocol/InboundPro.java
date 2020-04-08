@@ -26,6 +26,7 @@ public class InboundPro {
     
     public MyMessage prcess() {
         
+        System.out.println("inbound process start");
         //들어온 메시지를 분석
         //헤더 분석
         //헤더는 언제나 8byte
@@ -49,11 +50,11 @@ public class InboundPro {
             //Regist type = 0;
             myMsg.setType(0);
         }
-        else if(type == (byte) 0) {
+        else if(type == (byte) 1) {
             //unRegist type = 1;
             myMsg.setType(1);
         }
-        else if(type == (byte) 0) {
+        else if(type == (byte) 2) {
             //broadcast type = 2;
             myMsg.setType(2);
         }
@@ -70,7 +71,7 @@ public class InboundPro {
             myMsg.setEnd(0);
             
         }
-        else if(resolve == (byte) 0) {
+        else if(resolve == (byte) 1) {
             //마지막 메세지 의미 end = 1;
             myMsg.setEnd(1);
         }

@@ -35,15 +35,14 @@ public class ClientInfo {
     public String getClientIP() {
         return clientIP;
     }
+    
+    public SocketChannel getSockCh() {
+        return this.sc;
+    }
 
 
     public void setClientIP(String clientIP) {
         this.clientIP = clientIP;
-    }
-
-
-    public SocketChannel getSc() {
-        return sc;
     }
 
 

@@ -22,7 +22,7 @@ import com.sun.xml.internal.bind.v2.model.core.ClassInfo;
 public class Server extends Thread {
 
 	private static final int SERVER_PORT = 12000;
-	private static final int BUF_SIZE = 1024;
+	private static final int BUF_SIZE = 128;
 	private static final String EXIT = "exit";
 	Selector selector;
 	ServerSocketChannel ssc;
@@ -46,6 +46,7 @@ public class Server extends Thread {
 			ssc.bind(new InetSocketAddress(SERVER_PORT));
 			ssc.register(selector, SelectionKey.OP_ACCEPT);
 
+			//for (int i=0; i < 5; i++) {
 			for (;;) {
 
 				int keyCount = selector.select();
@@ -97,6 +98,7 @@ public class Server extends Thread {
 			return;
 		}else {
 			buffer.flip();
+			System.out.println("[Server] : inbound process");
 			InboundPro inpro = new InboundPro(buffer);
 			MyMessage mmsg = inpro.prcess();
 			
@@ -123,18 +125,27 @@ public class Server extends Thread {
                 
             case 2:
                 // broadcast
+                System.out.println("[Server] : broadcast process");
                 OutboundPro outPro = new OutboundPro(mmsg);
                 
+                ByteBuffer msgBuf=outPro.serverProcess();
                 
-                ByteBuffer msgBuf=outPro.process();
-                
-                for(SelectionKey key : selector.keys()) {
-                    if(key.isValid() && key.channel() instanceof SocketChannel) {
-                        SocketChannel sch=(SocketChannel) key.channel();
-                        sch.write(msgBuf);
-                        msgBuf.rewind();
-                    }
+                msgBuf.flip();
+                for(ClientInfo cl : clientList) {
+                    cl.getSockCh().write(msgBuf);
+                    msgBuf.rewind();
+                    System.out.println("[Server] : 전송!!");
                 }
+                
+//                //todo list안에 있는 사람들에게만 broad하게 수정할것
+//                for(SelectionKey key : selector.keys()) {
+//                    if(key.isValid() && key.channel() instanceof SocketChannel) {
+//                        SocketChannel sch=(SocketChannel) key.channel();
+//                        sch.write(msgBuf);
+//                        msgBuf.rewind();
+//                        System.out.println("[Server] : 전송!!");
+//                    }
+//                }
                 break;
 			}
 			
@@ -166,6 +177,7 @@ public class Server extends Thread {
 			 */
 			return;
 		}
+		
 
 		if (acceptNewClient() == false) {
 			stopServer();
@@ -179,12 +191,13 @@ public class Server extends Thread {
 
 	private boolean serverConditionChk() {
         // TODO Auto-generated method stub
-        return false;
+        return true;
     }
 
     public boolean acceptNewClient() {
 
 		try {
+		    
 			SocketChannel clientFD = ssc.accept();
 			clientFD.configureBlocking(false);
 			clientFD.register(selector, SelectionKey.OP_READ);
@@ -193,6 +206,8 @@ public class Server extends Thread {
 			String clientID = "Client_" + cliNum;
 			ClientInfo clientInfo = new ClientInfo(clientID, clientFD.getRemoteAddress().toString(), clientFD);
 			clientList.add(clientInfo);
+			
+
 
 			return true;
 

@@ -13,6 +13,9 @@ import java.util.Iterator;
 import java.util.Scanner;
 import java.util.Set;
 
+import Protocol.InboundPro;
+import Protocol.MyMessage;
+
 /**
  * Client selector를 이용해 ReadFromServer 실행 (non block) thread를 추가하여 WriteToServer
  * 클라이언트 종료
@@ -21,6 +24,7 @@ import java.util.Set;
 
 public class Client extends Thread {
 
+    private static final int BUF_SIZE = 128;
     private static String address = "127.0.0.1";
     private static int port = 12000;
     private InetSocketAddress connectAddress = new InetSocketAddress(address, port);
@@ -67,7 +71,6 @@ public class Client extends Thread {
 
     private void clientAction() {
         
-
         try {
             
             new WriteToServer(sc, clientID).start();
@@ -83,20 +86,17 @@ public class Client extends Thread {
 
                 Set<SelectionKey> selectedKeys = selector.selectedKeys();
                 Iterator<SelectionKey> iter = selectedKeys.iterator();
-                //System.out.println("chenck loop1");
 
                 while (iter.hasNext()) {
 
                     SelectionKey selectionKey = (SelectionKey) iter.next();
-
-                    //System.out.println("chenck loop2");
 
                     if (!selectionKey.isValid()) {
                         continue;
                     }
 
                     if (selectionKey.isReadable()) {
-                        
+                        System.out.print("[client] : 수신 중...");
                         readFromServer(selectionKey);
                     }
 
@@ -111,9 +111,8 @@ public class Client extends Thread {
 
     private void readFromServer(SelectionKey selectionKey) throws IOException {
         
-        ByteBuffer buffer = ByteBuffer.allocate(1024);
+        ByteBuffer buffer = ByteBuffer.allocate(BUF_SIZE);
         SocketChannel selectedChannel = (SocketChannel) selectionKey.channel();
-
         int size = selectedChannel.read(buffer);
 
         if (size == -1) {
@@ -127,16 +126,21 @@ public class Client extends Thread {
             //client close() 함수 만들기
             //writeToServer에서도 동작 되도록...
         }
-
-        buffer.flip();
-        String data = decoder.decode(buffer).toString();
-        System.out.print("Server form echo : ");
-        System.out.println(data);
-
-        // System.out.println("read result");
-        //printState(buffer);
-        buffer.clear();
         
+        InboundPro ipro = new InboundPro(buffer);
+        MyMessage mmsg = ipro.prcess();
+        
+        
+        //타입별
+        if(mmsg.getErr() != true && mmsg.getType() == 2) {
+            //buffer.flip();
+            //String data = decoder.decode(buffer).toString();
+            String str = new String(mmsg.getBody());
+            System.out.print("Server form echo : ");
+            System.out.println(str);
+            buffer.clear();
+            
+        }
     }
 
 
