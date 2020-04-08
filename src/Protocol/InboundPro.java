@@ -9,12 +9,12 @@ import java.nio.channels.SocketChannel;
 
 public class InboundPro {
 
-//    private enum types {
-//        REGIST, UNREGIST, BROADCAST
-//    }
-
     private static final byte MAGIC_NUM = 14;
     private ByteBuffer buffer;
+    
+    public enum myType {
+        REGIST, UNREGIST, BROADCAST
+      }
     
 
     MyMessage myMsg = new MyMessage();
@@ -58,7 +58,7 @@ public class InboundPro {
             myMsg.setType(2);
         }
         else {
-            myMsg.setErr(false);
+            myMsg.setErr(true);
         }
         
         //Resolved 贸府
@@ -75,7 +75,7 @@ public class InboundPro {
             myMsg.setEnd(1);
         }
         else {
-            myMsg.setErr(false);
+            myMsg.setErr(true);
         }
         
         // Future 贸府 - 泅犁 0
@@ -101,11 +101,10 @@ public class InboundPro {
             }
             //this.buffer.get(body, 0, dl);
             //buffer.get(body);
-            String s = new String(body);
+            //String s = new String(body);
             //System.out.println("body 盔炼 : " + s);
             myMsg.setBody(body);
         }
-        //offset = offset + 4;
         
         return myMsg;
     }

@@ -7,7 +7,6 @@ public class ProtocolTest {
     public static void main(String[] args) {
         
         ByteBuffer b = ByteBuffer.allocate(1024);
-        Type type;
         
         String str = "53333";
         byte[] body = str.getBytes();
@@ -33,7 +32,6 @@ public class ProtocolTest {
 //        System.out.println(b.get(8));
         
        // b.getInt(index)
-        System.out.println(types.valueOf(get(1)));
         System.out.println(b.getInt(4));
         
         

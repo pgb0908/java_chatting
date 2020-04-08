@@ -4,7 +4,7 @@ package Protocol;
 public class MyMessage {
     
     private boolean err;
-    private myType type;
+    private int type;
     private int resolve;
     private int end;
     private int f;
@@ -25,15 +25,17 @@ public class MyMessage {
     }
 
     public void setType(int i) {
-        if(i == 0) {
-            this.type = myType.REGIST;
-        }
-        else if(i == 1) {
-            this.type = myType.UNREGIST;
-        }
-        if(i == 2) {
-            this.type = myType.BROADCAST;
-        }
+//        if(i == 0) {
+//            this.type = myType.REGIST;
+//        }
+//        else if(i == 1) {
+//            this.type = myType.UNREGIST;
+//        }
+//        if(i == 2) {
+//            this.type = myType.BROADCAST;
+//        }
+        
+        this.type = i;
         
     }
 
@@ -59,7 +61,7 @@ public class MyMessage {
         
     }
 
-    public myType getType() {
+    public int getType() {
         return this.type;
         
     }

@@ -2,6 +2,7 @@ package Server;
 
 import Protocol.InboundPro;
 import Protocol.MyMessage;
+import Protocol.OutboundPro;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -26,6 +27,7 @@ public class Server extends Thread {
 	Selector selector;
 	ServerSocketChannel ssc;
 	private int cliNum = 0;
+	
 
 	private static ArrayList<ClientInfo> clientList = new ArrayList<ClientInfo>();
 
@@ -99,24 +101,32 @@ public class Server extends Thread {
 			MyMessage mmsg = inpro.prcess();
 			
 			
-			OutboundPro 
-			
 			//switch에 따라 석택
 			switch(mmsg.getType()) {
 			
-			case REG:
-			    //to do
+			case 0:
+			    //to do - register
 			    System.out.println();
+			    
+			    //hash map 탐색 --> update
+			    //client에게 통보??
+			    
 			    break;
 			    
-            case UNREGIST:
-                //to do
+            case 1:
+                //to do - unregister
                 System.out.println();
+                
+                //fd를 키로 hash map
+                //fd를 이용해 검색 후 삭제
                 break;
                 
-            case BROADCAST:
+            case 2:
+                // broadcast
+                OutboundPro outPro = new OutboundPro(mmsg);
                 
-                ByteBuffer msgBuf=buffer;
+                
+                ByteBuffer msgBuf=outPro.process();
                 
                 for(SelectionKey key : selector.keys()) {
                     if(key.isValid() && key.channel() instanceof SocketChannel) {
@@ -149,7 +159,7 @@ public class Server extends Thread {
 
 	public void acceptProcess(Selector selector, ServerSocketChannel ssc) {
 
-		if (newClientCheck() == false) {
+		if (serverConditionChk() == false) {
 			/**
 			 * to do 고객에게 ~ 조건으로 서버 진입 불가하다고 알리기
 			 * 
@@ -167,7 +177,12 @@ public class Server extends Thread {
 		System.out.println("[Server] : client is connected");
 	}
 
-	public boolean acceptNewClient() {
+	private boolean serverConditionChk() {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    public boolean acceptNewClient() {
 
 		try {
 			SocketChannel clientFD = ssc.accept();
@@ -186,12 +201,6 @@ public class Server extends Thread {
 		}
 	}
 
-	boolean newClientCheck() {
-
-		// 최대 접속자 수 비교
-
-		return true;
-	}
 
 	public void stopServer() {
 		try {
