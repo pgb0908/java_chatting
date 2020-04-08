@@ -54,25 +54,25 @@ public class OutboundPro {
         //Type 처리
         //서버랑 클라가 상이함
         switch(this.mmsg.getType()) {
-        case 0:
-            buffer.put((byte) 0);
-            break;
-        case 1:
-            buffer.put((byte) 1);
-            break;
-        case 2:
-            buffer.put((byte) 2);
-            break;
+            case 0:
+                buffer.put((byte) 0);
+                break;
+            case 1:
+                buffer.put((byte) 1);
+                break;
+            case 2:
+                buffer.put((byte) 2);
+                break;
         }
         
         //Resolved 처리
         switch(this.mmsg.getEnd()) {
-        case 0:
-            buffer.put((byte) 0);
-            break;
-        case 1:
-            buffer.put((byte) 1);
-            break;
+            case 0:
+                buffer.put((byte) 0);
+                break;
+            case 1:
+                buffer.put((byte) 1);
+                break;
         }
         
         // Future 처리 - 현재 0
