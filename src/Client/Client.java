@@ -135,6 +135,7 @@ public class Client extends Thread {
         if(mmsg.getErr() != true && mmsg.getType() == 2) {
             //buffer.flip();
             //String data = decoder.decode(buffer).toString();
+        	//read utf 찾아걸것
             String str = new String(mmsg.getBody());
             System.out.print("Server form echo : ");
             System.out.println(str);

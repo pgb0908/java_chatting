@@ -12,10 +12,6 @@ public class InboundPro {
     private static final byte MAGIC_NUM = 14;
     private ByteBuffer buffer;
     
-    public enum myType {
-        REGIST, UNREGIST, BROADCAST
-      }
-    
 
     MyMessage myMsg = new MyMessage();
     
@@ -46,6 +42,7 @@ public class InboundPro {
         byte type = this.buffer.get(offset);
         offset++;
         
+        //todo casting гр╟м...
         if(type == (byte) 0) {
             //Regist type = 0;
             myMsg.setType(0);

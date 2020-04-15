@@ -91,7 +91,7 @@ public class Server extends Thread {
 
         if (n < 0) {
             /**
-             * to do 에러 처리
+             * TODO 에러 처리
              */
             
             return;
@@ -128,6 +128,7 @@ public class Server extends Thread {
 
                 ByteBuffer msgBuf = outPro.serverProcess();
 
+                // TODO read 체크
                 msgBuf.flip();
                 for (ClientInfo cl : clientList) {
                     cl.getSockCh().write(msgBuf);
@@ -135,15 +136,6 @@ public class Server extends Thread {
                     System.out.println("[Server] : 전송!!");
                 }
 
-//                //todo list안에 있는 사람들에게만 broad하게 수정할것
-//                for(SelectionKey key : selector.keys()) {
-//                    if(key.isValid() && key.channel() instanceof SocketChannel) {
-//                        SocketChannel sch=(SocketChannel) key.channel();
-//                        sch.write(msgBuf);
-//                        msgBuf.rewind();
-//                        System.out.println("[Server] : 전송!!");
-//                    }
-//                }
                 break;
             }
 
@@ -168,7 +160,7 @@ public class Server extends Thread {
 
         if (serverConditionChk() == false) {
             /**
-             * to do 고객에게 ~ 조건으로 서버 진입 불가하다고 알리기
+             * TODO 고객에게 ~ 조건으로 서버 진입 불가하다고 알리기
              * 
              */
             return;
@@ -192,7 +184,9 @@ public class Server extends Thread {
     public boolean acceptNewClient() {
 
         try {
-
+        	// to do
+        	// accept가 논블럭 >> 해당 클라이이너트가 accept 되었는지 확인이 필요!!
+        	// or 별개의 thread로 accept 처리
             SocketChannel clientFD = ssc.accept();
             clientFD.configureBlocking(false);
             clientFD.register(selector, SelectionKey.OP_READ);
