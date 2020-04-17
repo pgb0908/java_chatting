@@ -70,6 +70,10 @@ public class Server extends Thread {
                         readFromClient(selectionKey);
                     }
 
+                    if (selectionKey.isWritable()) {
+                        writeToClient(selectionKey);
+                    }
+
                     iter.remove();
                 }
             }
@@ -78,6 +82,26 @@ public class Server extends Thread {
 
             stopServer();
         }
+    }
+
+    private void writeToClient(SelectionKey selectionKey) throws IOException {
+        SocketChannel sc = (SocketChannel) selectionKey.channel();
+
+        for (ClientInfo clientInfo : clientList) {
+            if (sc.equals(clientInfo.getSockCh())) {
+                ByteBuffer buffer = clientInfo.writeBuffer;
+                buffer.flip();
+                sc.write(buffer);
+
+                if (buffer.hasRemaining()) {
+                    buffer.compact();
+                } else {
+                    selectionKey.interestOps(SelectionKey.OP_READ);
+                }
+            }
+
+        }
+
     }
 
     public void readFromClient(SelectionKey selectionKey) throws IOException {
@@ -93,7 +117,7 @@ public class Server extends Thread {
             /**
              * TODO 에러 처리
              */
-            
+
             return;
         } else {
             buffer.flip();
@@ -105,36 +129,21 @@ public class Server extends Thread {
             switch (mmsg.getType()) {
 
             case 0:
-                // to do - register
-                System.out.println();
-
+                // TODO - register
                 // hash map 탐색 --> update
                 // client에게 통보??
 
                 break;
 
             case 1:
-                // to do - unregister
-                System.out.println();
-
+                // TODO - unregister
                 // fd를 키로 hash map
                 // fd를 이용해 검색 후 삭제
                 break;
 
             case 2:
                 // broadcast
-                System.out.println("[Server] : broadcast process");
-                OutboundPro outPro = new OutboundPro(mmsg);
-
-                ByteBuffer msgBuf = outPro.serverProcess();
-
-                // TODO read 체크
-                msgBuf.flip();
-                for (ClientInfo cl : clientList) {
-                    cl.getSockCh().write(msgBuf);
-                    msgBuf.rewind();
-                    System.out.println("[Server] : 전송!!");
-                }
+                broadcast(mmsg, selectionKey);
 
                 break;
             }
@@ -143,18 +152,30 @@ public class Server extends Thread {
 
     }
 
-//	private void broadcast(ByteBuffer buffer) throws IOException {
-//		
-//		ByteBuffer msgBuf=buffer;
-//		for(SelectionKey key : selector.keys()) {
-//			if(key.isValid() && key.channel() instanceof SocketChannel) {
-//				SocketChannel sch=(SocketChannel) key.channel();
-//				sch.write(msgBuf);
-//				msgBuf.rewind();
-//			}
-//		}
-//		
-//	}
+    private void broadcast(MyMessage mmsg, SelectionKey selectionKey) throws IOException {
+
+        System.out.println("[Server] : broadcast process");
+        OutboundPro outPro = new OutboundPro(mmsg);
+
+        ByteBuffer msgBuf = outPro.process();
+
+        // TODO read 체크
+        msgBuf.flip();
+        for (ClientInfo cl : clientList) {
+            cl.getSockCh().write(msgBuf);
+
+            if (msgBuf.hasRemaining()) {
+                ByteBuffer remainBuffer = msgBuf.duplicate();
+                // 클라이언트 존재하는 바이트버퍼에 담기
+                cl.writeBuffer.put(remainBuffer);
+                selectionKey.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
+            }
+
+            msgBuf.rewind();
+            System.out.println("[Server] : 전송!!");
+        }
+
+    }
 
     public void acceptProcess(Selector selector, ServerSocketChannel ssc) {
 
@@ -167,7 +188,6 @@ public class Server extends Thread {
         }
 
         if (acceptNewClient() == false) {
-            stopServer();
             return;
         }
 
@@ -184,19 +204,26 @@ public class Server extends Thread {
     public boolean acceptNewClient() {
 
         try {
-        	// to do
-        	// accept가 논블럭 >> 해당 클라이이너트가 accept 되었는지 확인이 필요!!
-        	// or 별개의 thread로 accept 처리
+            // TODO
+            // accept가 논블럭 >> 해당 클라이이너트가 accept 되었는지 확인이 필요!!
+            // or 별개의 thread로 accept 처리
             SocketChannel clientFD = ssc.accept();
-            clientFD.configureBlocking(false);
-            clientFD.register(selector, SelectionKey.OP_READ);
+            if (clientFD != null) {
 
-            cliNum++;
-            String clientID = "Client_" + cliNum;
-            ClientInfo clientInfo = new ClientInfo(clientID, clientFD.getRemoteAddress().toString(), clientFD);
-            clientList.add(clientInfo);
+                clientFD.configureBlocking(false);
+                clientFD.register(selector, SelectionKey.OP_READ);
 
-            return true;
+                cliNum++;
+                String clientID = "Client_" + cliNum;
+                ClientInfo clientInfo = new ClientInfo(clientID, clientFD.getRemoteAddress().toString(), clientFD);
+                clientList.add(clientInfo);
+
+                return true;
+            } else {
+                // clientFD가 제대로 accept 되지 않음
+                return false;
+
+            }
 
         } catch (Exception e) {
             return false;

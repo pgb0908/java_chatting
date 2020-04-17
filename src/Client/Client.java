@@ -33,25 +33,24 @@ public class Client extends Thread {
     private Charset charset;
     private CharsetDecoder decoder = null;
     private String clientID;
-    
+
     public Client(String clientID) {
         this.clientID = clientID;
     }
 
-
     public void run() {
 
-        if(connectToServer() == false) {
+        if (connectToServer() == false) {
             return;
         }
-        
+
         clientAction();
     }
 
     private boolean connectToServer() {
         try {
-            System.out.println("client ["+this.clientID +"] is connecting...");
-            
+            System.out.println("client [" + this.clientID + "] is connecting...");
+
             selector = Selector.open();
             sc = SocketChannel.open(connectAddress);
             sc.configureBlocking(false);
@@ -59,8 +58,7 @@ public class Client extends Thread {
 
             charset = Charset.forName("UTF-8");
             decoder = charset.newDecoder();
-            
-            
+
             return true;
         } catch (IOException e) {
             return false;
@@ -68,11 +66,10 @@ public class Client extends Thread {
 
     }
 
-
     private void clientAction() {
-        
+
         try {
-            
+
             new WriteToServer(sc, clientID).start();
 
             // selector를 이용해 read
@@ -110,7 +107,7 @@ public class Client extends Thread {
     }
 
     private void readFromServer(SelectionKey selectionKey) throws IOException {
-        
+
         ByteBuffer buffer = ByteBuffer.allocate(BUF_SIZE);
         SocketChannel selectedChannel = (SocketChannel) selectionKey.channel();
         int size = selectedChannel.read(buffer);
@@ -121,35 +118,33 @@ public class Client extends Thread {
             selector.close();
             System.out.print("Client is disconnected!!");
             return;
-            
-            //to do
-            //client close() 함수 만들기
-            //writeToServer에서도 동작 되도록...
+
+            // to do
+            // client close() 함수 만들기
+            // writeToServer에서도 동작 되도록...
         }
-        
+
         InboundPro ipro = new InboundPro(buffer);
         MyMessage mmsg = ipro.prcess();
-        
-        
-        //타입별
-        if(mmsg.getErr() != true && mmsg.getType() == 2) {
-            //buffer.flip();
-            //String data = decoder.decode(buffer).toString();
-        	//read utf 찾아걸것
+
+        // 타입별
+        if (mmsg.getErr() != true && mmsg.getType() == 2) {
+            // buffer.flip();
+            // String data = decoder.decode(buffer).toString();
+            // read utf 찾아걸것
             String str = new String(mmsg.getBody());
             System.out.print("Server form echo : ");
             System.out.println(str);
             buffer.clear();
-            
+
         }
     }
-
 
     private void printState(ByteBuffer buffer) {
         System.out.print("\tposition: " + buffer.position() + ", ");
         System.out.print("\tlimit: " + buffer.limit() + ", ");
         System.out.println("\tcapacity: " + buffer.capacity());
-        
+
     }
 
 }
